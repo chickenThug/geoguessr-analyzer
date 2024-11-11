@@ -1,0 +1,64 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Build outputs
+dist/
+build/
+out/
+*.log
+
+# Package manager files
+yarn-debug.log*
+yarn-error.log*
+npm-debug.log*
+package-lock.json
+yarn.lock
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Python specific
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.env/
+.venv/
+pip-log.txt
+
+# Java specific
+*.class
+*.jar
+target/
+.gradle/
+
+# Operating System
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
