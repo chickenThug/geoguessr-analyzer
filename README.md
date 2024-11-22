@@ -20,3 +20,13 @@ This project aims to create an application for analyzing geoguessr games. The so
 - Create application
    - sqlite database
    - react app
+ 
+## General thoughts
+
+Script for game data extraction, that formats data for web applicaiton. 
+
+Web application prompts upload and saves to user. Allow for no signup then view our data. 
+
+### Web application 
+ - (easy) All, continent and country views
+     - All: opponent diff, continent summary in opponent diff. Top 5 most common countries opponent diff score. 
