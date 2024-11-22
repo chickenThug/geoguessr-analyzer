@@ -62,3 +62,10 @@ target/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# SQLite database files
+*.db
+*.db-journal  
+*.sqlite3
+*.sqlite-journal
+data/*.db     # If using a specific data directory

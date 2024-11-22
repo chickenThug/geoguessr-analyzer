@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from game_file_extraction import GameFileExtractor
+from data_pipeline.game_file_extraction import GameFileExtractor
 import logging
 
 def setup_logging():
