@@ -29,4 +29,6 @@ Web application prompts upload and saves to user. Allow for no signup then view 
 
 ### Web application 
  - (easy) All, continent and country views
-     - All: opponent diff, continent summary in opponent diff. Top 5 most common countries opponent diff score. 
+     - All: opponent diff, continent summary in opponent diff. Top 5 most common countries opponent diff score.
+     - Continent: top 5 best countries, top 5 worst contries opponent diff. Country acc, avg score, avg opponent diff
+     - Country: region acc (if applicable), country acc, #rounds, top 5 mistaken countries, score distribution. Top 3 worst regions.
