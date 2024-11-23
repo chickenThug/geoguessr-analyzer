@@ -32,3 +32,8 @@ Web application prompts upload and saves to user. Allow for no signup then view 
      - All: opponent diff, continent summary in opponent diff. Top 5 most common countries opponent diff score.
      - Continent: top 5 best countries, top 5 worst contries opponent diff. Country acc, avg score, avg opponent diff
      - Country: region acc (if applicable), country acc, #rounds, top 5 mistaken countries, score distribution. Top 3 worst regions.
+       
+### Data pipeline
+5s per round for team duels (1 API call per second 5 long lat per round)
+3s per round for duels
+2s per round for single player game
