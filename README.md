@@ -19,7 +19,7 @@ This project aims to create an application for analyzing geoguessr games. The so
    - Find Country and region for guesses (GeoCode)
 - Create application
    - sqlite database
-   - react app
+   - svelte app
  
 ## General thoughts
 
