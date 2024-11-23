@@ -122,10 +122,41 @@ class DatabaseManager:
             self.logger.error(f"Error getting game counts: {str(e)}")
             return 0
 
-    # TODO: Implement duel data retrieval from db
-    def get_game_ids(self) -> Dict[str, Any]:
-        """Get duel data from database."""
-        pass
+    def get_game_ids(self) -> List[Dict[str, str]]:
+        """
+        Get all game IDs and their modes from multiplayer_games table.
+
+        Returns:
+            List[Dict[str, str]]: List of dictionaries containing game_id, game_mode,
+                and competitive_game_mode for each game
+        """
+        try:
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+
+                cursor.execute(
+                    """
+                    SELECT game_id, game_mode
+                    FROM multiplayer_games
+                """
+                )
+
+                # Convert rows to list of dictionaries
+                rows = cursor.fetchall()
+                games = [
+                    {
+                        "game_id": row[0],
+                        "game_mode": row[1],
+                    }
+                    for row in rows
+                ]
+
+                self.logger.info(f"Retrieved {len(games)} game IDs from database")
+                return games
+
+        except sqlite3.Error as e:
+            self.logger.error(f"Error getting game IDs: {str(e)}")
+            return []
 
     def insert_duel_games(self, data: List[Dict[str, Any]]) -> bool:
         """Insert duel games into database."""
