@@ -33,9 +33,14 @@ Web application prompts upload and saves to user. Allow for no signup then view 
      - Continent: top 5 best countries, top 5 worst countries opponent diff. Country acc, avg score, avg opponent diff
      - Country: region acc (if applicable), country acc, #rounds, top 5 mistaken countries, score distribution. Top 3 worst regions.
  - (hard)
-     - World map where you can highlight most common mistaken countries when hovering a country (red->yellow) red most guessed wrong 
+     - World map where you can highlight most common mistaken countries when hovering a country (red->yellow) red most guessed wrong
+  
+add on extension which does things for you skipping the copying of cookie
        
 ### Data pipeline
 5s per round for team duels (1 API call per second 5 long lat per round)
 3s per round for duels
 2s per round for single player game
+
+First iteration: batch processing
+Second iteration: get only new games by looking at timestamps
