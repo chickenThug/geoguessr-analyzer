@@ -228,7 +228,9 @@ class GameDataExtractor:
             }
 
         except Exception as e:
-            self.logger.error(f"Error processing team duel game data: {str(e)}")
+            self.logger.error(
+                f"Error processing team duel game data: {str(e)}. The game_id is {data['gameId']}"
+            )
             raise GameDataValidationError(
                 f"Failed to process team duel game data: {str(e)}"
             ) from e
@@ -263,23 +265,40 @@ class GameDataExtractor:
         """
         Extract and store duel games
         """
-        game_meta_data = self.db.get_game_ids()
-        for meta_data_dict in game_meta_data:
-            game_id = meta_data_dict["game_id"]
-            game_mode = meta_data_dict["game_mode"]
-            game_data = self.fetch_duel_game(game_id)
-            from pprint import pprint
+        try:
+            game_meta_data = self.db.get_game_ids()
+            success_count = 0
+            total_count = 0
 
-            # pprint(game_data, sort_dicts=False)
-            if game_mode == "Duels":
-                pass
-            elif game_mode == "TeamDuels":
-                processed_data = self.process_team_duel_game(game_data)
-                pprint(processed_data, sort_dicts=False)
-                break
-            else:
-                self.logger.error(f"Invalid game mode: {game_mode}")
-                continue
+            for meta_data_dict in game_meta_data:
+                game_id = meta_data_dict["game_id"]
+                game_mode = meta_data_dict["game_mode"]
+
+                game_data = self.fetch_duel_game(game_id)
+                if not game_data:
+                    continue
+
+                if game_mode == "TeamDuels":
+                    processed_data = self.process_team_duel_game(game_data)
+                    if processed_data and self.db.insert_team_duel_game(processed_data):
+                        success_count += 1
+                elif game_mode == "Duels":
+                    # TODO: Handle regular duels
+                    pass
+
+                total_count += 1
+                time.sleep(1)  # Rate limiting
+
+            self.logger.info(
+                f"Successfully processed {success_count} out of {total_count} duel games"
+            )
+            return success_count > 0
+
+        except Exception as e:
+            self.logger.error(
+                f"Duel game extraction failed: {str(e)}. Duel game ID is {game_id}"
+            )
+            return False
 
 
 if __name__ == "__main__":

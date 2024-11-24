@@ -2,6 +2,7 @@ import os
 from dotenv import load_dotenv
 from data_pipeline.game_file_extraction import GameFileExtractor
 from data_pipeline.game_data_extraction import GameDataExtractor
+from data_pipeline.utils.db_manager import DatabaseManager
 import logging
 
 
@@ -61,6 +62,11 @@ def main():
     except Exception as e:
         logger.error(f"Pipeline failed with error: {str(e)}")
         raise
+
+
+def test_db_manager():
+    db_manager = DatabaseManager()
+    db_manager.get_avg_number_of_rounds()
 
 
 if __name__ == "__main__":

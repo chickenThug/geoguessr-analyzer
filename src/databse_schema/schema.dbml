@@ -1,0 +1,49 @@
+Table multiplayer_games {
+  game_id text [pk]
+  player_id text [not null]
+  time text [not null]
+  game_mode text [not null]
+  competitive_game_mode text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table location {
+  location_id text [pk]
+  long_lat text [not null]
+  country text [not null]
+  city text
+  state text
+  region text
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table team_duel_games {
+  game_id text [pk]
+  status text [not null]
+  rounds integer [not null]
+  player1_id text [not null]
+  player2_id text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+Table team_duel_rounds {
+  round_id text [pk]
+  game_id text [not null]
+  round_number integer [not null]
+  team_score integer [not null]
+  heading integer [not null]
+  pitch integer [not null]
+  zoom integer [not null]
+  player1_location_id text [not null]
+  player2_location_id text [not null]
+  opponent_score integer [not null]
+  country_code text [not null]
+  correct_location_id text [not null]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+ref: team_duel_games.game_id -> team_duel_rounds.game_id
+ref: team_duel_rounds.player1_location_id -> location.location_id
+ref: team_duel_rounds.player2_location_id -> location.location_id
+ref: team_duel_rounds.correct_location_id -> location.location_id
+ref: team_duel_games.game_id -> multiplayer_games.game_id

@@ -6,7 +6,7 @@ from pathlib import Path
 src_path = Path(__file__).parent
 sys.path.append(str(src_path))
 
-from data_pipeline.data_pipeline import main
+from data_pipeline.data_pipeline import main, test_db_manager
 
 if __name__ == "__main__":
-    main()
+    test_db_manager()
