@@ -44,6 +44,21 @@ class DatabaseManager:
                     )
                 """
                 )
+
+                # Create single-player games table
+                cursor.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS singleplayer_games (
+                        game_token TEXT PRIMARY KEY,
+                        time TEXT NOT NULL,
+                        map_slug TEXT NOT NULL,
+                        map_name TEXT NOT NULL,
+                        points INTEGER NOT NULL,
+                        game_mode TEXT NOT NULL
+                    )
+                """
+                )
+
                 conn.commit()
 
         except sqlite3.Error as e:
@@ -54,12 +69,17 @@ class DatabaseManager:
         """Insert games into database."""
         try:
             self.logger.info(
-                f"Inserting {len(data['multiplayer_games'])} multiplayer games into {self.db_path}"
+                f"Inserting {len(data['multiplayer_games'])} multiplayer games and {len(data['singleplayer_games'])} single-player games into {self.db_path}"
             )
 
             if data["multiplayer_games"]:
                 self.logger.debug(
                     f"Sample multiplayer game: {data['multiplayer_games'][0]}"
+                )
+
+            if data["singleplayer_games"]:
+                self.logger.debug(
+                    f"Sample single-player game: {data['singleplayer_games'][0]}"
                 )
 
             with sqlite3.connect(self.db_path) as conn:
@@ -91,6 +111,33 @@ class DatabaseManager:
                         self.logger.debug(f"Problem game data: {game}")
                         continue
 
+                # Insert single-player games
+                inserted_count = 0
+                for game in data["singleplayer_games"]:
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT OR REPLACE INTO singleplayer_games
+                            (game_token, time, map_slug, map_name, points, game_mode)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                            (
+                                game["game_token"],
+                                game["time"],
+                                game["map_slug"],
+                                game["map_name"],
+                                game["points"],
+                                game["game_mode"],
+                            ),
+                        )
+                        inserted_count += 1
+                    except sqlite3.Error as e:
+                        self.logger.error(
+                            f"Error inserting single-player game {game['game_token']}: {str(e)}"
+                        )
+                        self.logger.debug(f"Problem game data: {game}")
+                        continue
+
                 conn.commit()  # Single commit after all insertions
                 self.logger.info(
                     f"Successfully inserted {inserted_count} multiplayer games"
@@ -115,12 +162,29 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                for row in cursor.execute("SELECT COUNT(*) FROM multiplayer_games"):
-                    print(row)
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM multiplayer_games WHERE player_id = ?
+                """,
+                    (player_id,),
+                )
+                multiplayer_count = cursor.fetchone()[0]
+
+                cursor.execute(
+                    """
+                    SELECT COUNT(*) FROM singleplayer_games
+                """
+                )
+                single_player_count = cursor.fetchone()[0]
+
+                return {
+                    "multiplayer_games": multiplayer_count,
+                    "singleplayer_games": single_player_count,
+                }
 
         except sqlite3.Error as e:
             self.logger.error(f"Error getting game counts: {str(e)}")
-            return 0
+            return {}
 
     def get_game_ids(self) -> List[Dict[str, str]]:
         """
@@ -162,6 +226,42 @@ class DatabaseManager:
         """Insert duel games into database."""
         pass
 
-    def insert_single_player_games(self, data: List[Dict[str, Any]]) -> bool:
-        """Insert single player games into database."""
-        pass
+    def insert_singleplayer_games(self, data: List[Dict[str, Any]]) -> bool:
+        """Insert single-player games into database."""
+        try:
+            self.logger.info(f"Inserting {len(data)} single-player games")
+
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
+
+                for game in data:
+                    try:
+                        cursor.execute(
+                            """
+                            INSERT OR REPLACE INTO singleplayer_games
+                            (game_token, time, map_slug, map_name, points, game_mode)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """,
+                            (
+                                game["game_token"],
+                                game["time"],
+                                game["map_slug"],
+                                game["map_name"],
+                                game["points"],
+                                game["game_mode"],
+                            ),
+                        )
+                    except sqlite3.Error as e:
+                        self.logger.error(
+                            f"Error inserting single-player game {game['game_token']}: {str(e)}"
+                        )
+                        self.logger.debug(f"Problem game data: {game}")
+                        continue
+
+                conn.commit()
+                self.logger.info(f"Successfully inserted {len(data)} single-player games")
+                return True
+
+        except sqlite3.Error as e:
+            self.logger.error(f"Database insert error: {str(e)}")
+            return False

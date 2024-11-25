@@ -174,7 +174,7 @@ class GameFileExtractor:
                     if payload_entry["type"] in [6, 7]:
                         multiplayer_games.append(self.process_multiplayer_game(payload_entry))
                     elif payload_entry["type"] in [1, 2]:
-                        pass
+                        singleplayer_games.append(self.process_singleplayer_game(payload_entry))
                     
         except Exception as e:
             self.logger.error(f"Error processing data: {str(e)}")
@@ -284,7 +284,46 @@ class GameFileExtractor:
         Raises:
             GameDataValidationError: If the input data fails validation
         """
-        pass
+        try:
+            # Validate input data structure
+            if not isinstance(game_data, dict):
+                raise TypeError(f"Game data is not a dict: {game_data}")
+
+            required_fields = ["type", "time", "payload"]
+            missing_fields = [field for field in required_fields if field not in game_data]
+            if missing_fields:
+                raise KeyError(f"Missing required fields: {missing_fields}")
+
+            if game_data["type"] != 1:  # Ensure this is a single-player game
+                raise ValueError(f"Invalid game type: {game_data['type']} (expected 1)")
+
+            # Validate payload fields
+            payload = game_data["payload"]
+            payload_required_fields = ["mapSlug", "mapName", "points", "gameToken", "gameMode"]
+            missing_payload_fields = [
+                field for field in payload_required_fields if field not in payload
+            ]
+            if missing_payload_fields:
+                raise KeyError(f"Missing payload fields: {missing_payload_fields}")
+
+            # Transform data into the desired format
+            processed_data = {
+                "time": game_data["time"],
+                "game_token": payload["gameToken"],
+                "map_slug": payload["mapSlug"],
+                "map_name": payload["mapName"],
+                "points": payload["points"],
+                "game_mode": payload["gameMode"],
+            }
+
+            return processed_data
+
+        except KeyError as e:
+            self.logger.error(f"Validation error in single-player game data: {str(e)}")
+            raise GameDataValidationError(str(e)) from e
+        except Exception as e:
+            self.logger.error(f"Unexpected error processing single-player game: {str(e)}")
+            raise GameDataValidationError(f"Failed to process single-player game data: {str(e)}") from e
             
     def run_extraction(self) -> bool:
         """Run the complete extraction pipeline."""
