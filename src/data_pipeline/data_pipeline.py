@@ -45,7 +45,8 @@ def main():
         )
 
         # success = game_data_extractor.extract_duel_games()
-        # exit()
+        success = game_data_extractor.extract_singleplayer_games()
+        exit()
 
         # Initialize and run extractor
         extractor = GameFileExtractor(

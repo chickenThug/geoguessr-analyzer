@@ -186,9 +186,9 @@ class DatabaseManager:
             self.logger.error(f"Error getting game counts: {str(e)}")
             return {}
 
-    def get_game_ids(self) -> List[Dict[str, str]]:
+    def get_game_ids(self, game_type) -> List[Dict[str, str]]:
         """
-        Get all game IDs and their modes from multiplayer_games table.
+        Get all game IDs and their modes from multiplayer_games and singleplayer_games tables.
 
         Returns:
             List[Dict[str, str]]: List of dictionaries containing game_id, game_mode,
@@ -198,13 +198,22 @@ class DatabaseManager:
             with sqlite3.connect(self.db_path) as conn:
                 cursor = conn.cursor()
 
-                cursor.execute(
+                if game_type == "multiplayer":
+                    cursor.execute(
+                        """
+                        SELECT game_id, game_mode, competitive_game_mode
+                        FROM multiplayer_games
                     """
-                    SELECT game_id, game_mode
-                    FROM multiplayer_games
-                """
-                )
-
+                    )
+                elif game_type == "singleplayer":
+                    cursor.execute(
+                        """
+                        SELECT game_token AS game_id, game_mode
+                        FROM singleplayer_games
+                    """
+                    )
+                else:
+                    raise ValueError("Invalid game type specified")
                 # Convert rows to list of dictionaries
                 rows = cursor.fetchall()
                 games = [

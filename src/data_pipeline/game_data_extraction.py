@@ -38,7 +38,7 @@ class GameDataExtractor:
         self.logger = logging.getLogger(__name__)
         self.db = DatabaseManager(db_path)
 
-    def fetch_single_player_game(self, game_token: str) -> Optional[dict]:
+    def fetch_singleplayer_game(self, game_token: str) -> Optional[dict]:
         """
         Fetches single player game data from the API.
 
@@ -84,7 +84,7 @@ class GameDataExtractor:
             self.logger.error(f"Error fetching duel game data from API: {str(e)}")
             return None
 
-    def process_single_player_game(self, data: dict) -> dict:
+    def process_singleplayer_game(self, data: dict) -> dict:
         """
         Process and transform the raw API single player game data.
 
@@ -98,14 +98,38 @@ class GameDataExtractor:
             GameDataValidationError: If data processing fails
         """
         try:
-            # TODO: Implement single player game processing
-            return
+            # Get player guesses for each round
+            rounds = []
+            player_guesses = data["player"]["guesses"]
+            for round_num, round_data in enumerate(data["rounds"]):
 
+                correct_location = f"{round_data['lat']}, {round_data['lng']}"
+                player_guess = f"{player_guesses[round_num]['lat']}, {player_guesses[round_num]['lng']}"
+
+                round_summary = {
+                    "round_number": round_num+1,
+                    "player_guess": player_guess,
+                    "correct_location": correct_location,
+                    "country_code": round_data["streakLocationCode"],
+                    "heading": round_data["heading"],
+                    "pitch": round_data["pitch"],
+                    "zoom": round_data["zoom"],
+                }
+                rounds.append(round_summary)
+
+            return {
+                "game_id": data["token"],
+                "status": data["state"],
+                "player_id": self.player_id1,
+                "rounds": rounds,
+            }
+
+        except KeyError as e:
+            self.logger.error(f"Validation error in single-player game data: {str(e)}")
+            raise GameDataValidationError(str(e)) from e
         except Exception as e:
-            self.logger.error(f"Error processing single player game data: {str(e)}")
-            raise GameDataValidationError(
-                f"Failed to process single player game data: {str(e)}"
-            ) from e
+            self.logger.error(f"Unexpected error processing single-player game data: {str(e)}")
+            raise GameDataValidationError(f"Failed to process single-player game data: {str(e)}") from e
 
     def process_duel_game(self, data: dict) -> dict:
         """
@@ -233,7 +257,7 @@ class GameDataExtractor:
                 f"Failed to process team duel game data: {str(e)}"
             ) from e
 
-    def extract_single_player_games(self, game_tokens: List[str]) -> bool:
+    def extract_singleplayer_games(self) -> bool:
         """
         Extract and store single player games.
 
@@ -246,14 +270,25 @@ class GameDataExtractor:
         try:
             processed_games = []
 
-            for game_token in game_tokens:
-                raw_data = self.fetch_single_player_game(game_token)
-                if raw_data:
-                    processed_data = self.process_single_player_game(raw_data)
-                    processed_games.append(processed_data)
-                    time.sleep(1)  # Rate limiting
+            # Fetch game tokens from database
+            game_meta_data = self.db.get_game_ids("singleplayer")
+            for meta_data_dict in game_meta_data:
+                game_token = meta_data_dict["game_id"]
+                game_mode = meta_data_dict["game_mode"]
+                game_data = self.fetch_singleplayer_game(game_token)
+                time.sleep(1)  # Rate limiting
+                from pprint import pprint
 
-            return self.db.insert_single_player_games(processed_games)
+                if game_mode == "Standard":
+                    processed_data = self.process_singleplayer_game(game_data)
+                    processed_games.append(processed_data)
+                    pprint(processed_data, sort_dicts=False)
+                    break
+                else:
+                    self.logger.error(f"Invalid game mode: {game_mode}")
+                    continue
+
+            #return self.db.insert_singleplayer_games(processed_games)
 
         except Exception as e:
             self.logger.error(f"Single player game extraction failed: {str(e)}")
@@ -263,7 +298,7 @@ class GameDataExtractor:
         """
         Extract and store duel games
         """
-        game_meta_data = self.db.get_game_ids()
+        game_meta_data = self.db.get_game_ids("multiplayer")
         for meta_data_dict in game_meta_data:
             game_id = meta_data_dict["game_id"]
             game_mode = meta_data_dict["game_mode"]
@@ -280,7 +315,6 @@ class GameDataExtractor:
             else:
                 self.logger.error(f"Invalid game mode: {game_mode}")
                 continue
-
 
 if __name__ == "__main__":
     extractor = GameDataExtractor(nfsc_cookie="")
