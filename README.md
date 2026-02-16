@@ -43,4 +43,4 @@ add on extension which does things for you skipping the copying of cookie
 2s per round for single player game
 
 First iteration: batch processing
-Second iteration: get only new games by looking at timestamps
+Second iteration: get only new games by looking at timestamps.
